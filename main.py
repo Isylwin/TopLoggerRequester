@@ -1,59 +1,58 @@
 import argparse
 import json
 import logging
+import random
 import time
-from concurrent.futures import ThreadPoolExecutor
+from json import JSONDecodeError
 from pathlib import Path
 from typing import List
+
+from playsound import playsound
+from plyer import notification
 
 from toplogger import TopLogger
 
 logger = logging.getLogger(__name__)
 
 
-def create_task(delay, top_logger):
-    def wrapped():
-        alive = True
+class Toaster:
+    def __init__(self, audio_dir):
+        self.audio_files = [x for x in audio_dir.glob("*.mp3")]
 
-        while alive:
-            alive = top_logger.run()
-            time.sleep(delay)
-
-    return wrapped
-
-
-def run_in_parallel(tasks):
-    with ThreadPoolExecutor() as executor:
-        running_tasks = [executor.submit(task) for task in tasks]
-        for running_task in running_tasks:
-            running_task.result()
+    def toast(self, message):
+        notification.notify(title='Hallo, ik ben je computer', message=message, timeout=10)
+        audio_file = random.choice(self.audio_files)
+        if audio_file:
+            playsound(str(audio_file), block=False)
 
 
 def main(p_args):
     config_file = p_args.config
+    delay = p_args.delay
+    audio_dir = p_args.audio
+
+    toaster = Toaster(audio_dir)
 
     try:
-        data: List[TopLogger] = json.load(config_file.open(), object_hook=TopLogger.from_json)
-    except Exception as err:
-        raise RuntimeError(f"Simon je bent dom je bent de komma vergeten in '{config_file.resolve()}'!") from err
+        top_loggers: List[TopLogger] = json.load(config_file.open(), object_hook=TopLogger.from_json)
 
-    delay = p_args.delay
-
-    tasks = []
-
-    for item in data:
-        settings = f"Looking for {item.spots} spots ({item.gym.name}:{item.reservation_area[0]} for {item.date} at {item.time_slot})"
-        logger.info(settings)
-        task = create_task(delay, item)
-        tasks.append(task)
-
-    run_in_parallel(tasks)
+        while 1:
+            for top_logger in top_loggers:
+                result = top_logger()
+                if result.error:
+                    raise ValueError(result.message)
+                if result.toastable:
+                    toaster.toast(result.message)
+            time.sleep(delay)
+    except JSONDecodeError as err:
+        raise Exception(f"Simon je bent dom je bent de komma vergeten in '{config_file.resolve()}'!") from err
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--delay", type=int, default=240, help="Delay between requests.")
     parser.add_argument("-c", "--config", type=Path, default="config.json", help="The json file with your config")
+    parser.add_argument("--audio", type=Path, default="audio", help="Glorious directory of amazing sound")
     return parser.parse_args()
 
 
