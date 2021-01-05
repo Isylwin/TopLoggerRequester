@@ -11,7 +11,7 @@ from playsound import playsound
 from plyer import notification
 
 from toplogger import TopLogger
-from pushsafer import init, Client
+#from pushsafer import init, Client
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ def main(p_args):
 
     toaster = Toaster(audio_dir)
 
-    ##Uncomment the following line and insert your private key!
+    #Uncomment and insert your private pushsafer key here
     #init("<privatekey>")
 
     try:
@@ -47,7 +47,8 @@ def main(p_args):
                     raise ValueError(result.message)
                 if result.toastable:
                     toaster.toast(result.message)
-                    Client("").send_message(result.message, "Free spot", "0", "0", "", "2", "", "", "0", "2", "60", "600", "1", "", "", "")
+                    #Uncomment and insert your Device or Device Group ID and message details here
+                    #Client("").send_message(result.message, "Free spot", "0", "0", "", "2", "", "", "0", "2", "60", "600", "1", "", "", "")
             time.sleep(delay)
     except JSONDecodeError as err:
         raise Exception(f"Simon je bent dom je bent de komma vergeten in '{config_file.resolve()}'!") from err
