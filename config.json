@@ -1,16 +1,9 @@
 [
   {
-    "date": "09-11-2020",
+    "date": "16-06-2021",
     "time_slot": "20:00",
     "spots": 1,
-    "gym": "STERK",
-    "area": "BOULDER"
-  },
-  {
-    "date": "05-11-2020",
-    "time_slot": "20:00",
-    "spots": 1,
-    "gym": "STERK",
-    "area": "BOULDER"
+    "gym": "Monk Eindho",
+    "area": "Beneden"
   }
 ]
